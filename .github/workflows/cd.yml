@@ -1,4 +1,4 @@
- name: CD Pipeline - Branche Prod
+name: CD Pipeline - Branche Prod
 
 on:
   push:
@@ -7,13 +7,13 @@ on:
 
 jobs:
   scan:
-    name: Job 1 - Scan Sécurité
+    name: Job 1 - Scan Securite
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Scan vulnérabilités avec Trivy
+      - name: Scan vulnerabilites avec Trivy
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: fs
@@ -21,7 +21,7 @@ jobs:
           severity: HIGH,CRITICAL
 
   deploy:
-    name: Job 2 - Déploiement sur runner_prod
+    name: Job 2 - Deploiement prod
     runs-on: ubuntu-latest
     needs: scan
     steps:
@@ -34,8 +34,8 @@ jobs:
       - name: Pull image depuis Docker Hub
         run: docker pull pascal2004/intranet-newdeal:latest
 
-      - name: Arrêter ancien conteneur si existant
+      - name: Arreter ancien conteneur si existant
         run: docker rm -f intranet-newdeal || true
 
-      - name: Déployer le conteneur sur port 80
+      - name: Deployer le conteneur sur port 80
         run: docker run -d --name intranet-newdeal -p 80:80 pascal2004/intranet-newdeal:latest
