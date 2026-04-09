@@ -1,0 +1,41 @@
+ name: CD Pipeline - Branche Prod
+
+on:
+  push:
+    branches:
+      - prod
+
+jobs:
+  scan:
+    name: Job 1 - Scan Sécurité
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Scan vulnérabilités avec Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+
+  deploy:
+    name: Job 2 - Déploiement sur runner_prod
+    runs-on: self-hosted
+    needs: scan
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Login Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Pull image depuis Docker Hub
+        run: docker pull pascal2004/intranet-newdeal:latest
+
+      - name: Arrêter ancien conteneur si existant
+        run: docker rm -f intranet-newdeal || true
+
+      - name: Déployer le conteneur sur port 80
+        run: docker run -d --name intranet-newdeal -p 80:80 pascal2004/intranet-newdeal:latest
